@@ -3,14 +3,12 @@ package com.SIMATS.binocularvision.ui
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,30 +28,15 @@ fun CameraAccessScreen(
     onNotNow: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    
-    // Permission launcher
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            onAllowAccess()
-        } else {
-            // If denied, open settings
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", context.packageName, null)
-            }
-            context.startActivity(intent)
-        }
-    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF5F5F7) // Light gray background
+        color = Color.White
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(horizontal = 32.dp, vertical = 60.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -65,21 +48,21 @@ fun CameraAccessScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.CameraAlt, // Using default camera icon
+                    imageVector = Icons.Outlined.PhotoCamera,
                     contentDescription = "Camera",
-                    tint = Color(0xFF4285F4), // Blue tint
-                    modifier = Modifier.size(48.dp)
+                    tint = Color(0xFF2962FF),
+                    modifier = Modifier.size(56.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
             // Title
             Text(
                 text = "Camera Access Needed",
-                style = MaterialTheme.typography.titleLarge,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF0D1B2A),
+                color = Color(0xFF0F172A),
                 textAlign = TextAlign.Center
             )
 
@@ -88,45 +71,49 @@ fun CameraAccessScreen(
             // Description
             Text(
                 text = "To assess your binocular vision, this app needs access to your front-facing camera.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color(0xFF546E7A),
+                fontSize = 16.sp,
+                color = Color(0xFF64748B),
                 textAlign = TextAlign.Center,
                 lineHeight = 24.sp
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
             // Info Box
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = Color(0xFFF8F9FA), shape = RoundedCornerShape(12.dp))
-                    .padding(20.dp)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                color = Color(0xFFF8FAFC)
             ) {
-                Text(
-                    text = "How we use it:",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF37474F),
-                    fontSize = 14.sp
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                BulletPoint(text = "Tracking eye movements")
-                BulletPoint(text = "Detecting pupil position")
-                BulletPoint(text = "Measuring gaze stability")
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = "How we use it:",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF334155),
+                        fontSize = 15.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    BulletPoint(text = "Tracking eye movements")
+                    BulletPoint(text = "Detecting pupil position")
+                    BulletPoint(text = "Measuring gaze stability")
+                }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             // Allow Access Button
             Button(
                 onClick = {
-                    permissionLauncher.launch(android.Manifest.permission.CAMERA)
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .height(60.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF2962FF)
                 ),
@@ -134,8 +121,8 @@ fun CameraAccessScreen(
             ) {
                 Text(
                     text = "Allow Camera Access",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
             }
@@ -150,8 +137,8 @@ fun CameraAccessScreen(
                 Text(
                     text = "Not Now",
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF37474F)
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF64748B)
                 )
             }
         }
@@ -162,18 +149,18 @@ fun CameraAccessScreen(
 fun BulletPoint(text: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 4.dp)
+        modifier = Modifier.padding(vertical = 6.dp)
     ) {
         Text(
             text = "•",
-            fontSize = 18.sp,
-            color = Color(0xFF546E7A),
-            modifier = Modifier.padding(end = 8.dp)
+            fontSize = 22.sp,
+            color = Color(0xFF94A3B8),
+            modifier = Modifier.padding(end = 16.dp)
         )
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color(0xFF546E7A)
+            fontSize = 16.sp,
+            color = Color(0xFF64748B)
         )
     }
 }

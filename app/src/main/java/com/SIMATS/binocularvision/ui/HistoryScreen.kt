@@ -9,10 +9,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,15 +23,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.SIMATS.binocularvision.ui.theme.BinocularvisionTheme
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.SIMATS.binocularvision.ui.viewmodels.TestViewModel
 import com.SIMATS.binocularvision.ui.viewmodels.AuthViewModel
-import java.util.Locale
-import kotlin.math.max
-import kotlin.math.min
 
 data class HistoryItem(
     val title: String,
@@ -59,6 +54,8 @@ fun HistoryScreen(
     val userId = authViewModel.userProfile.value?.id
     val historyItems by viewModel.filteredHistory
     
+    var showDeleteDialog by remember { mutableStateOf<Int?>(null) }
+
     LaunchedEffect(userId) {
         userId?.let { viewModel.fetchHistory(it) }
     }
@@ -130,8 +127,6 @@ fun HistoryScreen(
                 }
 
                 items(historyItems) { remoteItem ->
-                    // Use classification and percentage directly from database result
-                    // Mapping to match the backend snippet provided by user
                     val dbClassification = remoteItem.classification?.lowercase() ?: "pending"
                     val percentageValue = remoteItem.percentage ?: 0.0
                     
@@ -151,41 +146,51 @@ fun HistoryScreen(
                     }
 
                     HistoryCard(
-                        HistoryItem(
+                        item = HistoryItem(
                             title = title,
                             date = remoteItem.date,
                             score = String.format("%.1f%%", percentageValue),
                             status = statusLabel,
                             statusColor = statusColor,
                             statusTextColor = statusTextColor
-                        )
+                        ),
+                        onDelete = { showDeleteDialog = remoteItem.testId }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
     }
-}
 
-@Composable
-fun FilterTag(text: String) {
-    Surface(
-        color = Color(0xFFE3F2FD),
-        shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2962FF))
-    ) {
-        Text(
-            text = text,
-            color = Color(0xFF2962FF),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+    if (showDeleteDialog != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = null },
+            title = { Text("Delete Test Result") },
+            text = { Text("Are you sure you want to delete this test result? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog?.let { viewModel.deleteTest(it) }
+                        showDeleteDialog = null
+                    }
+                ) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = null }) {
+                    Text("Cancel")
+                }
+            }
         )
     }
 }
 
 @Composable
-fun HistoryCard(item: HistoryItem) {
+fun HistoryCard(
+    item: HistoryItem,
+    onDelete: () -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -228,17 +233,28 @@ fun HistoryCard(item: HistoryItem) {
                         color = Color(0xFF0D1B2A)
                     )
                     
-                    Surface(
-                        color = item.statusColor,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = item.status,
-                            color = item.statusTextColor,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            color = item.statusColor,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = item.status,
+                                color = item.statusTextColor,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                        
+                        IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = Color.LightGray,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
                 
@@ -247,7 +263,8 @@ fun HistoryCard(item: HistoryItem) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically) {
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.CalendarToday,

@@ -7,7 +7,7 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface  TestDao {
+interface TestDao {
     @Query("SELECT * FROM tests WHERE userId = :userId ORDER BY date DESC")
     fun getTestsByUserId(userId: String): Flow<List<Test>>
 
@@ -19,4 +19,7 @@ interface  TestDao {
 
     @Query("DELETE FROM tests WHERE userId = :userId")
     suspend fun deleteTestsByUserId(userId: String)
+
+    @Query("DELETE FROM tests WHERE id = :testId")
+    suspend fun deleteTestById(testId: Int)
 }

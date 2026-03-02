@@ -68,4 +68,9 @@ interface ApiService {
     suspend fun getHomeDashboard(
         @Query("user_id") userId: String
     ): Response<HomeDashboardResponse>
+
+    @POST("delete_test")
+    suspend fun deleteTest(
+        @Query("test_id") testId: Int
+    ): Response<CommonResponse>
 }

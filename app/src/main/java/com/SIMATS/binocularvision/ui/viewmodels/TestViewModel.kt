@@ -135,7 +135,6 @@ class TestViewModel(application: Application) : AndroidViewModel(application) {
                     val aiResponse = RetrofitClient.instance.runAi(mapOf("test_id" to currentTestId))
                     
                     if (aiResponse.isSuccessful && aiResponse.body()?.status == true) {
-                        // AI triggered successfully, now fetch the final results
                         fetchResult(currentTestId)
                     } else {
                         val errorJson = aiResponse.errorBody()?.string()
@@ -175,8 +174,9 @@ class TestViewModel(application: Application) : AndroidViewModel(application) {
                         val tracking = body.tracking ?: 0.0
                         val accuracy = body.accuracy ?: 0.0
                         val reaction = body.reaction ?: 0.0
-
+                        
                         val newTest = Test(
+                            id = testId,
                             userId = userId,
                             testType = "Assessment",
                             score = score,
@@ -216,6 +216,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application) {
                     val remoteHistory = response.body()?.history ?: emptyList()
                     val localTests = remoteHistory.map {
                         Test(
+                            id = it.testId,
                             userId = userId,
                             testType = it.testType,
                             score = it.score ?: 0.0,
@@ -233,6 +234,21 @@ class TestViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 Log.e("TestViewModel", "Error fetching history", e)
+            }
+        }
+    }
+
+    fun deleteTest(testId: Int) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.instance.deleteTest(testId)
+                if (response.isSuccessful && response.body()?.status == true) {
+                    testDao.deleteTestById(testId)
+                } else {
+                    Log.e("TestViewModel", "Failed to delete test from server: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("TestViewModel", "Error deleting test", e)
             }
         }
     }
