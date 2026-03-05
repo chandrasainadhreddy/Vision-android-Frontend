@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.*
@@ -54,8 +53,6 @@ fun HistoryScreen(
     val userId = authViewModel.userProfile.value?.id
     val historyItems by viewModel.filteredHistory
     
-    var showDeleteDialog by remember { mutableStateOf<Int?>(null) }
-
     LaunchedEffect(userId) {
         userId?.let { viewModel.fetchHistory(it) }
     }
@@ -153,43 +150,18 @@ fun HistoryScreen(
                             status = statusLabel,
                             statusColor = statusColor,
                             statusTextColor = statusTextColor
-                        ),
-                        onDelete = { showDeleteDialog = remoteItem.testId }
+                        )
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
     }
-
-    if (showDeleteDialog != null) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = null },
-            title = { Text("Delete Test Result") },
-            text = { Text("Are you sure you want to delete this test result? This action cannot be undone.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog?.let { viewModel.deleteTest(it) }
-                        showDeleteDialog = null
-                    }
-                ) {
-                    Text("Delete", color = Color.Red)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = null }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
 }
 
 @Composable
 fun HistoryCard(
-    item: HistoryItem,
-    onDelete: () -> Unit = {}
+    item: HistoryItem
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -233,28 +205,17 @@ fun HistoryCard(
                         color = Color(0xFF0D1B2A)
                     )
                     
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            color = item.statusColor,
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(
-                                text = item.status,
-                                color = item.statusTextColor,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                        
-                        IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete",
-                                tint = Color.LightGray,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
+                    Surface(
+                        color = item.statusColor,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = item.status,
+                            color = item.statusTextColor,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
                 }
                 
