@@ -12,5 +12,6 @@ data class UserProfile(
     @SerializedName("id") val id: String,
     @SerializedName("name") val name: String,
     @SerializedName("email") val email: String,
-    @SerializedName("phone") val phone: String
+    @SerializedName("phone") val phone: String,
+    @SerializedName("profile_image") val profileImage: String? = null
 )

@@ -38,7 +38,11 @@ class MainActivity : ComponentActivity() {
                             navController.navigate("onboarding") { popUpTo("splash") { inclusive = true } }
                         })
                     }
-                    composable("onboarding") { OnboardingScreen(onNavigateNext = { navController.navigate("intro") }) }
+                    composable("onboarding") { 
+                        OnboardingScreen(onNavigateNext = { 
+                            navController.navigate("intro") 
+                        }) 
+                    }
                     composable("intro") {
                         IntroScreen(
                             onNavigateNext = { navController.navigate("realtime_tracking") },
@@ -73,6 +77,7 @@ class MainActivity : ComponentActivity() {
                             viewModel = authViewModel
                         )
                     }
+                    // ... rest of the navigation remains the same
                     composable("forgot_password") {
                         ForgotPasswordScreen(
                             onNavigateBack = { navController.popBackStack() },

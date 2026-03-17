@@ -1,6 +1,8 @@
 package com.SIMATS.binocularvision.api
 
 import com.SIMATS.binocularvision.api.models.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -72,5 +74,22 @@ interface ApiService {
     @POST("delete_test")
     suspend fun deleteTest(
         @Query("test_id") testId: Int
+    ): Response<CommonResponse>
+
+    @Multipart
+    @POST("api/user/upload-profile-image")
+    suspend fun uploadProfileImage(
+        @Part("user_id") userId: RequestBody,
+        @Part image: MultipartBody.Part
+    ): Response<CommonResponse>
+
+    @Multipart
+    @POST("update_profile_with_image")
+    suspend fun updateProfileWithImage(
+        @Part("user_id") userId: RequestBody,
+        @Part("name") name: RequestBody,
+        @Part("email") email: RequestBody,
+        @Part("phone") phone: RequestBody,
+        @Part image: MultipartBody.Part?
     ): Response<CommonResponse>
 }

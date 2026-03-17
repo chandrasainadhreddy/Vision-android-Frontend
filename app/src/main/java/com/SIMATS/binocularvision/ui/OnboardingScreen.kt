@@ -1,106 +1,116 @@
 package com.SIMATS.binocularvision.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.SIMATS.binocularvision.R
 import com.SIMATS.binocularvision.ui.theme.BinocularvisionTheme
 
 @Composable
 fun OnboardingScreen(onNavigateNext: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF5F5F7) // Light gray background
+        color = Color.White
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Eye Graphics
-            Box(
-                modifier = Modifier.size(280.dp),
-                contentAlignment = Alignment.Center
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Top Logos Row - Positioned exactly at the top
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                // Outer light blue circle
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawCircle(
-                        color = Color(0xFFE3F2FD),
-                        radius = size.minDimension / 2
-                    )
-                }
+                // SES Logo
+                Image(
+                    painter = painterResource(id = R.drawable.ic_ses_logo),
+                    contentDescription = "SES Logo",
+                    modifier = Modifier.size(85.dp)
+                )
                 
-                 // Inner light blue circle outline
-                Canvas(modifier = Modifier.size(200.dp)) {
-                     drawCircle(
-                        color = Color(0xFFBBDEFB),
-                        radius = size.minDimension / 2,
-                        style = Stroke(width = 2.dp.toPx())
-                    )
-                }
-
-                // Center Eye Icon
-                 Icon(
-                    imageVector = Icons.Default.Visibility,
-                    contentDescription = "App Logo",
-                    tint = Color(0xFF2979FF),
-                    modifier = Modifier.size(80.dp)
+                // SIMATS Logo
+                Image(
+                    painter = painterResource(id = R.drawable.ic_simats_logo),
+                    contentDescription = "SIMATS Logo",
+                    modifier = Modifier.size(85.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.weight(0.6f))
+
+            // Central Eye Graphic
+            Box(
+                modifier = Modifier.size(290.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // Outer light blue background circle
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFFEBF2FF), CircleShape)
+                )
+                
+                // Inner ring outline
+                Canvas(modifier = Modifier.size(240.dp)) {
+                    drawCircle(
+                        color = Color(0xFFD9E6FF),
+                        style = Stroke(width = 4.dp.toPx())
+                    )
+                }
+
+                // Main Eye Icon
+                Image(
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground_content),
+                    contentDescription = "Eye Icon",
+                    modifier = Modifier.size(115.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
 
             // Title
             Text(
                 text = "Smart Vision\nAnalysis",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
-                color = Color(0xFF0D1B2A),
+                color = Color(0xFF0F172A),
                 lineHeight = 40.sp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Description
             Text(
                 text = "Detect eye coordination issues early using advanced AI technology right from your phone.",
-                style = MaterialTheme.typography.bodyLarge,
+                fontSize = 16.sp,
                 textAlign = TextAlign.Center,
-                color = Color(0xFF546E7A),
-                lineHeight = 24.sp
+                color = Color(0xFF64748B),
+                lineHeight = 24.sp,
+                modifier = Modifier.padding(horizontal = 12.dp)
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -110,29 +120,41 @@ fun OnboardingScreen(onNavigateNext: () -> Unit) {
                 onClick = onNavigateNext,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .height(60.dp),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2962FF), // Rich Blue
+                    containerColor = Color(0xFF2962FF),
                     contentColor = Color.White
-                )
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
-                 Icon(
-                    imageVector = Icons.Default.ArrowForward,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = Color.White
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Get Started",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Get Started",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Footer Text
+            Text(
+                text = "Powered by SIMATS Engineering",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF1E293B)
+            )
         }
     }
 }

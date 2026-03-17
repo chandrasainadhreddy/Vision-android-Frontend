@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,8 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.SIMATS.binocularvision.ui.theme.BinocularvisionTheme
-
-import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.delay
 
 @Composable
@@ -38,13 +37,12 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF5F5F7) // Light gray background similar to the image
+        color = Color.White
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            // Center Content
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -62,7 +60,7 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
                         Icon(
                             imageVector = Icons.Default.Visibility,
                             contentDescription = "App Logo",
-                            tint = Color(0xFF2979FF), // Blue color from the image
+                            tint = Color(0xFF2979FF), // Blue color
                             modifier = Modifier.size(48.dp)
                         )
                     }
@@ -70,13 +68,24 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                // App Title / Tagline
+                // Title
                 Text(
-                    text = "AI Assessment Tool",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFFD1E3FF), // Very light blue/gray text from image
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 18.sp
+                    text = "Smart Vision\nAnalysis",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    color = Color(0xFF0F172A),
+                    lineHeight = 40.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "AI-Powered Eye Tracking",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF64748B),
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
                 )
             }
 
@@ -87,10 +96,11 @@ fun SplashScreen(onNavigateNext: () -> Unit) {
                     .padding(bottom = 64.dp)
             ) {
                 Text(
-                    text = "Student Project 2026",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFFD1E3FF), // Matching light blue/gray
-                    fontSize = 14.sp
+                    text = "Powered by SIMATS Engineering",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF1E293B),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }

@@ -21,11 +21,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.SIMATS.binocularvision.api.RetrofitClient
 import com.SIMATS.binocularvision.ui.theme.BinocularvisionTheme
 import com.SIMATS.binocularvision.ui.viewmodels.AuthViewModel
 
@@ -102,12 +105,25 @@ fun SettingsScreen(
                             .background(Color(0xFFE3F2FD)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = userProfile?.name?.take(2)?.uppercase() ?: "??",
-                            color = Color(0xFF2962FF),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        )
+                        val imageUrl = userProfile?.profileImage?.let {
+                            if (it.startsWith("http")) it else "${RetrofitClient.BASE_URL}$it"
+                        }
+
+                        if (imageUrl != null) {
+                            AsyncImage(
+                                model = imageUrl,
+                                contentDescription = "Profile Image",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Text(
+                                text = userProfile?.name?.take(2)?.uppercase() ?: "??",
+                                color = Color(0xFF2962FF),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {

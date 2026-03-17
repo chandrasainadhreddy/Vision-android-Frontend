@@ -17,11 +17,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.SIMATS.binocularvision.api.RetrofitClient
 import com.SIMATS.binocularvision.api.models.HistoryItemRemote
 import com.SIMATS.binocularvision.ui.theme.BinocularvisionTheme
 import com.SIMATS.binocularvision.ui.viewmodels.AuthViewModel
@@ -105,12 +108,25 @@ fun HomeScreen(
                                     .clickable { onProfileClick() },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = userProfile?.name?.split(" ")?.mapNotNull { it.firstOrNull() }?.joinToString("")?.take(2) ?: "U",
-                                    color = Color(0xFF2962FF),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                val imageUrl = userProfile?.profileImage?.let {
+                                    if (it.startsWith("http")) it else "${RetrofitClient.BASE_URL}$it"
+                                }
+
+                                if (imageUrl != null) {
+                                    AsyncImage(
+                                        model = imageUrl,
+                                        contentDescription = "Profile Image",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Text(
+                                        text = userProfile?.name?.split(" ")?.mapNotNull { it.firstOrNull() }?.joinToString("")?.take(2) ?: "U",
+                                        color = Color(0xFF2962FF),
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
                         }
 
