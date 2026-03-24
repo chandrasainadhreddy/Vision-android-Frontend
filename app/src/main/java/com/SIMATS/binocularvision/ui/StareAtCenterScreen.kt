@@ -59,7 +59,8 @@ fun StareAtCenterScreen(
     val totalTestDuration = 120_000L
     val jumpInterval = 1500L
     var isTestRunning by remember { mutableStateOf(false) }
-    var startTime by remember { mutableLongStateOf(0L) }
+    var elapsedTime by remember { mutableLongStateOf(0L) }
+    var isEyeDetected by remember { mutableStateOf(true) }
 
     // Face detection for eye data
     val faceDetector = remember {
@@ -75,15 +76,18 @@ fun StareAtCenterScreen(
     LaunchedEffect(Unit) {
         viewModel?.startTest(userId, testType)
         isTestRunning = true
-        startTime = System.currentTimeMillis()
     }
 
     // Timer and Progress management
-    LaunchedEffect(isTestRunning) {
-        if (isTestRunning) {
-            while (System.currentTimeMillis() - startTime < totalTestDuration) {
-                delay(500)
-                progress = ((System.currentTimeMillis() - startTime).toFloat() / totalTestDuration)
+    LaunchedEffect(isTestRunning, isEyeDetected) {
+        if (isTestRunning && isEyeDetected) {
+            val tickInterval = 500L
+            while (elapsedTime < totalTestDuration && isEyeDetected) {
+                delay(tickInterval)
+                if (isEyeDetected) {
+                    elapsedTime += tickInterval
+                    progress = (elapsedTime.toFloat() / totalTestDuration).coerceAtMost(1f)
+                }
                 
                 // If the state moved to Analyzing/Finished elsewhere, stop
                 if (viewModel?.testState?.value is com.SIMATS.binocularvision.ui.viewmodels.TestState.Finished) {
@@ -91,16 +95,17 @@ fun StareAtCenterScreen(
                     return@LaunchedEffect
                 }
             }
-            // 2 minutes is up!
-            isTestRunning = false
-            onTestComplete()
+            if (elapsedTime >= totalTestDuration) {
+                isTestRunning = false
+                onTestComplete()
+            }
         }
     }
 
     // Random Dot Movement
-    LaunchedEffect(screenWidth, screenHeight, isTestRunning) {
-        if (screenWidth > 0 && screenHeight > 0 && isTestRunning) {
-            while (isTestRunning) {
+    LaunchedEffect(screenWidth, screenHeight, isTestRunning, isEyeDetected) {
+        if (screenWidth > 0 && screenHeight > 0 && isTestRunning && isEyeDetected) {
+            while (isTestRunning && isEyeDetected) {
                 val padding = with(density) { 60.dp.toPx() }
                 dotPosition = Offset(
                     x = Random.nextFloat() * (screenWidth - 2 * padding) + padding,
@@ -147,6 +152,7 @@ fun StareAtCenterScreen(
                                         val rightEye = face.getLandmark(com.google.mlkit.vision.face.FaceLandmark.RIGHT_EYE)?.position
                                         
                                         if (leftEye != null && rightEye != null) {
+                                            isEyeDetected = true
                                             // Stream sample to backend
                                             viewModel?.addSample(
                                                 n = sampleCount++,
@@ -157,8 +163,15 @@ fun StareAtCenterScreen(
                                                 rx = rightEye.x,
                                                 ry = rightEye.y
                                             )
+                                        } else {
+                                            isEyeDetected = false
                                         }
+                                    } else {
+                                        isEyeDetected = false
                                     }
+                                }
+                                .addOnFailureListener {
+                                    isEyeDetected = false
                                 }
                                 .addOnCompleteListener { imageProxy.close() }
                         } else {
@@ -212,8 +225,34 @@ fun StareAtCenterScreen(
                 strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
             )
             Spacer(modifier = Modifier.height(4.dp))
-            val secondsLeft = (120 - (progress * 120)).toInt()
+            val secondsLeft = ((totalTestDuration - elapsedTime) / 1000).toInt()
             Text(text = "${secondsLeft}s remaining", fontSize = 12.sp, color = Color(0xFF94A3B8))
+        }
+
+        // 3. Error Overlay for missing eyes
+        if (!isEyeDetected && isTestRunning) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.White.copy(alpha = 0.8f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = Color.Red)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Eyes not detecting",
+                        color = Color.Red,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Test paused. Please align your face.",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
+            }
         }
 
         // The Moving Dot

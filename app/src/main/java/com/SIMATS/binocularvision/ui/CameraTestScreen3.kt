@@ -98,6 +98,9 @@ fun CameraTestScreen3(
                             .setTargetResolution(Size(1280, 720))
                             .build()
 
+                        var eyesClosedInLastFrame = false
+                        var isNavigating = false
+
                         imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
                             val mediaImage = imageProxy.image
                             if (mediaImage != null) {
@@ -109,10 +112,24 @@ fun CameraTestScreen3(
                                     .addOnSuccessListener { faces ->
                                         if (faces.isNotEmpty()) {
                                             val face = faces[0]
-                                            if (face.leftEyeOpenProbability != null && face.rightEyeOpenProbability != null) {
-                                                Log.d("CameraTest3", "Eyes Detected!")
-                                                onEyesDetected()
+                                            val leftProb = face.leftEyeOpenProbability ?: -1f
+                                            val rightProb = face.rightEyeOpenProbability ?: -1f
+                                            
+                                            if (leftProb != -1f && rightProb != -1f) {
+                                                if (leftProb < 0.2f && rightProb < 0.2f) {
+                                                    eyesClosedInLastFrame = true
+                                                    Log.d("CameraTest3", "Eyes Closed Detected")
+                                                } else if (eyesClosedInLastFrame && leftProb > 0.7f && rightProb > 0.7f) {
+                                                    eyesClosedInLastFrame = false
+                                                    if (!isNavigating) {
+                                                        isNavigating = true
+                                                        Log.d("CameraTest3", "Blink Detected! Navigating...")
+                                                        onEyesDetected()
+                                                    }
+                                                }
                                             }
+                                        } else {
+                                            eyesClosedInLastFrame = false
                                         }
                                     }
                                     .addOnCompleteListener {
@@ -214,7 +231,7 @@ fun CameraTestScreen3(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Position your face in the frame",
+                        text = "Position your face and blink to verify",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -222,7 +239,7 @@ fun CameraTestScreen3(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Full Assessment: Ensuring good lighting",
+                        text = "Liveness Check: Blink your eyes to continue",
                         color = Color(0xFF90A4AE),
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center

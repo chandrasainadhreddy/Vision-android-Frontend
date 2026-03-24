@@ -107,46 +107,55 @@ fun EditProfileScreen(
             Box(
                 modifier = Modifier
                     .size(120.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFDBEAFE))
                     .clickable { imagePickerLauncher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                val profileImageUrl = userProfile?.profileImage?.let {
-                    val base = if (it.startsWith("http")) it else "${RetrofitClient.BASE_URL}$it"
-                    "$base?t=${System.currentTimeMillis()}"
-                }
+                // Main Avatar Circle
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF2196F3)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val profileImageUrl = userProfile?.profileImage?.let {
+                        val base = if (it.startsWith("http")) it else "${RetrofitClient.BASE_URL}$it"
+                        "$base?t=${System.currentTimeMillis()}"
+                    }
 
-                if (selectedImageUri != null) {
-                    AsyncImage(
-                        model = selectedImageUri,
-                        contentDescription = "Selected Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else if (profileImageUrl != null) {
-                    AsyncImage(
-                        model = profileImageUrl,
-                        contentDescription = "Profile Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Text(
-                        text = userProfile?.name?.take(2)?.uppercase() ?: "??",
-                        color = Color(0xFF2563EB),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 40.sp
-                    )
+                    if (selectedImageUri != null) {
+                        AsyncImage(
+                            model = selectedImageUri,
+                            contentDescription = "Selected Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else if (profileImageUrl != null) {
+                        AsyncImage(
+                            model = profileImageUrl,
+                            contentDescription = "Profile Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "No Image",
+                            tint = Color.White,
+                            modifier = Modifier.size(64.dp)
+                        )
+                    }
                 }
                 
                 // Camera Overlay Icon
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(36.dp)
                         .align(Alignment.BottomEnd)
-                        .background(Color(0xFF2563EB), CircleShape)
-                        .padding(6.dp),
+                        .background(Color.White, CircleShape)
+                        .padding(2.dp) // White border effect
+                        .clip(CircleShape)
+                        .background(Color(0xFF2196F3)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

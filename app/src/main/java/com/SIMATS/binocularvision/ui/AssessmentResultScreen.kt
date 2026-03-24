@@ -20,6 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.SIMATS.binocularvision.ui.viewmodels.AuthViewModel
+import com.SIMATS.binocularvision.ui.viewmodels.TestViewModel
+import com.SIMATS.binocularvision.ui.viewmodels.TestState
 import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
@@ -29,10 +33,12 @@ import kotlin.math.min
 fun AssessmentResultScreen(
     onBackToHome: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
-    viewModel: com.SIMATS.binocularvision.ui.viewmodels.TestViewModel? = null
+    viewModel: TestViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
 ) {
-    val state = viewModel?.testState?.value
-    val result = (state as? com.SIMATS.binocularvision.ui.viewmodels.TestState.Finished)?.result
+    val state = viewModel.testState.value
+    val result = (state as? TestState.Finished)?.result
+    val userId = authViewModel.userProfile.value?.id
     
     // Use the values directly from the backend result
     val rawClassification = result?.classification?.lowercase() ?: "normal"
@@ -198,6 +204,28 @@ fun AssessmentResultScreen(
             }
 
             Spacer(modifier = Modifier.height(40.dp))
+
+            if (result?.testId != null && userId != null) {
+                OutlinedButton(
+                    onClick = {
+                        viewModel.deleteTest(result.testId, userId)
+                        onBackToHome()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444))
+                ) {
+                    Text(
+                        text = "Discard & Delete",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
 
             Button(
                 onClick = onBackToHome,

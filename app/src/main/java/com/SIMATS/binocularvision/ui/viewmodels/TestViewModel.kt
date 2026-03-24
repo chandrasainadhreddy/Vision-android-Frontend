@@ -238,14 +238,22 @@ class TestViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun deleteTest(testId: Int) {
+    fun deleteTest(testId: Int, userId: String) {
         viewModelScope.launch {
             try {
-                val response = RetrofitClient.instance.deleteTest(testId)
+                // 1. Delete from server (backend should handle results and tests tables)
+                val response = RetrofitClient.instance.deleteTest(testId, userId)
+                
                 if (response.isSuccessful && response.body()?.status == true) {
+                    // 2. Delete from local Room database
                     testDao.deleteTestById(testId)
+                    Log.i("TestViewModel", "Test $testId deleted successfully from server and local DB")
                 } else {
-                    Log.e("TestViewModel", "Failed to delete test from server: ${response.code()}")
+                    val errorMsg = response.body()?.error ?: response.body()?.message ?: "Server error"
+                    Log.e("TestViewModel", "Failed to delete test from server ($testId): $errorMsg")
+
+                    // Fallback: If server says not found or specifically allows local cleanup
+                    // For now, we only delete locally if server confirms deletion to keep them in sync
                 }
             } catch (e: Exception) {
                 Log.e("TestViewModel", "Error deleting test", e)

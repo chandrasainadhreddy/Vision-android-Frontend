@@ -71,9 +71,10 @@ interface ApiService {
         @Query("user_id") userId: String
     ): Response<HomeDashboardResponse>
 
-    @POST("delete_test")
+    @DELETE("delete_test/{test_id}")
     suspend fun deleteTest(
-        @Query("test_id") testId: Int
+        @Path("test_id") testId: Int,
+        @Query("user_id") userId: String
     ): Response<CommonResponse>
 
     @Multipart

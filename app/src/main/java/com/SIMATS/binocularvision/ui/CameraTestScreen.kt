@@ -100,6 +100,9 @@ fun CameraTestScreen(
                             .setTargetResolution(Size(1280, 720))
                             .build()
 
+                        var eyesClosedInLastFrame = false
+                        var isNavigating = false
+
                         imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
                             val mediaImage = imageProxy.image
                             if (mediaImage != null) {
@@ -111,12 +114,24 @@ fun CameraTestScreen(
                                     .addOnSuccessListener { faces ->
                                         if (faces.isNotEmpty()) {
                                             val face = faces[0]
-                                            // Check if eyes are detected
-                                            if (face.leftEyeOpenProbability != null && face.rightEyeOpenProbability != null) {
-                                                // ML Kit detected a face with eyes
-                                                Log.d("CameraTest", "Eyes Detected!")
-                                                onEyesDetected()
+                                            val leftProb = face.leftEyeOpenProbability ?: -1f
+                                            val rightProb = face.rightEyeOpenProbability ?: -1f
+                                            
+                                            if (leftProb != -1f && rightProb != -1f) {
+                                                if (leftProb < 0.2f && rightProb < 0.2f) {
+                                                    eyesClosedInLastFrame = true
+                                                    Log.d("CameraTest", "Eyes Closed Detected")
+                                                } else if (eyesClosedInLastFrame && leftProb > 0.7f && rightProb > 0.7f) {
+                                                    eyesClosedInLastFrame = false
+                                                    if (!isNavigating) {
+                                                        isNavigating = true
+                                                        Log.d("CameraTest", "Blink Detected! Navigating...")
+                                                        onEyesDetected()
+                                                    }
+                                                }
                                             }
+                                        } else {
+                                            eyesClosedInLastFrame = false
                                         }
                                     }
                                     .addOnCompleteListener {
@@ -222,7 +237,7 @@ fun CameraTestScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Position your face in the frame",
+                        text = "Position your face and blink your eyes to verify",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -230,22 +245,27 @@ fun CameraTestScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Ensure good lighting",
+                        text = "Detection: Blinking eye check for liveness",
                         color = Color(0xFF90A4AE),
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
-                        onClick = onEyesDetected,
+                        onClick = { /* Automatic navigation upon blink */ },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2962FF))
+                        enabled = false,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2962FF).copy(alpha = 0.5f),
+                            disabledContainerColor = Color(0xFF2962FF).copy(alpha = 0.3f),
+                            disabledContentColor = Color.White.copy(alpha = 0.5f)
+                        )
                     ) {
                         Text(
-                            text = "Start Test",
+                            text = "Waiting for eye blink...",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

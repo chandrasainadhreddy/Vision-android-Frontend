@@ -1,6 +1,5 @@
 package com.SIMATS.binocularvision.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -33,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.SIMATS.binocularvision.ui.theme.BinocularvisionTheme
 import com.SIMATS.binocularvision.ui.viewmodels.AuthState
 import com.SIMATS.binocularvision.ui.viewmodels.AuthViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,9 +48,17 @@ fun CreateAccountScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var agreeToTerms by remember { mutableStateOf(false) }
-    
+
+    // Error states for individual fields
+    var fullNameError by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var phoneError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     val authState by viewModel.authState
 
     LaunchedEffect(authState) {
@@ -67,8 +75,75 @@ fun CreateAccountScreen(
         }
     }
 
-    // Validation logic: Button is enabled if terms are agreed
-    val isFormValid = agreeToTerms
+    // Validation logic based on provided conditions
+    fun validate(): Boolean {
+        fullNameError = null
+        emailError = null
+        phoneError = null
+        passwordError = null
+        confirmPasswordError = null
+
+        val name = fullName.trim()
+        val mail = email.trim()
+        val phone = phoneNumber.trim()
+
+        // Username
+        if (name.isEmpty()) {
+            fullNameError = "Username required"
+            return false
+        }
+        if (!name.matches(Regex("^[A-Za-z]+(?: [A-Za-z]+)*$"))) {
+            fullNameError = "Only letters allowed"
+            return false
+        }
+
+        // Email
+        if (mail.isEmpty()) {
+            emailError = "Email required"
+            return false
+        }
+        if (!mail.matches(Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))) {
+            emailError = "Invalid email"
+            return false
+        }
+
+        // Phone
+        if (phone.isEmpty()) {
+            phoneError = "Phone required"
+            return false
+        }
+        if (!phone.matches(Regex("^\\d{10}$"))) {
+            phoneError = "Must be 10 digits"
+            return false
+        }
+
+        // Password
+        if (password.isEmpty()) {
+            passwordError = "Password required"
+            return false
+        }
+        if (!password.matches(Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&^#()_\\-+=|\\\\/.,:;~`])[A-Za-z\\d@$!%*?&^#()_\\-+=|\\\\/.,:;~`]{8,}$"))) {
+            passwordError = "Weak password"
+            return false
+        }
+
+        // Confirm Password
+        if (confirmPassword.isEmpty()) {
+            confirmPasswordError = "Confirm password required"
+            return false
+        }
+        if (password != confirmPassword) {
+            confirmPasswordError = "Passwords do not match"
+            return false
+        }
+
+        if (!agreeToTerms) {
+            scope.launch { snackbarHostState.showSnackbar("Please agree to the terms and conditions") }
+            return false
+        }
+
+        return true
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -124,9 +199,13 @@ fun CreateAccountScreen(
                 AccountInputField(
                     label = "Full Name",
                     value = fullName,
-                    onValueChange = { fullName = it },
+                    onValueChange = {
+                        fullName = it
+                        fullNameError = null
+                    },
                     placeholder = "John Doe",
-                    leadingIcon = Icons.Default.Person
+                    leadingIcon = Icons.Default.Person,
+                    errorText = fullNameError
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -135,10 +214,14 @@ fun CreateAccountScreen(
                 AccountInputField(
                     label = "Email Address",
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it
+                        emailError = null
+                    },
                     placeholder = "your.email@example.com",
                     leadingIcon = Icons.Default.Email,
-                    keyboardType = KeyboardType.Email
+                    keyboardType = KeyboardType.Email,
+                    errorText = emailError
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -147,10 +230,14 @@ fun CreateAccountScreen(
                 AccountInputField(
                     label = "Phone Number",
                     value = phoneNumber,
-                    onValueChange = { phoneNumber = it },
-                    placeholder = "+1 (555) 000-0000",
+                    onValueChange = {
+                        phoneNumber = it
+                        phoneError = null
+                    },
+                    placeholder = "10-digit mobile number",
                     leadingIcon = Icons.Default.Phone,
-                    keyboardType = KeyboardType.Phone
+                    keyboardType = KeyboardType.Phone,
+                    errorText = phoneError
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -159,11 +246,15 @@ fun CreateAccountScreen(
                 AccountInputField(
                     label = "Password",
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        passwordError = null
+                    },
                     placeholder = "Min. 8 characters",
                     leadingIcon = Icons.Default.Lock,
                     isPassword = true,
-                    helperText = "At least 8 characters involving uppercase, lowercase, numbers, and symbols."
+                    helperText = "At least 8 characters involving uppercase, lowercase, numbers, and symbols.",
+                    errorText = passwordError
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -172,10 +263,14 @@ fun CreateAccountScreen(
                 AccountInputField(
                     label = "Confirm Password",
                     value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
+                    onValueChange = {
+                        confirmPassword = it
+                        confirmPasswordError = null
+                    },
                     placeholder = "Re-enter password",
                     leadingIcon = Icons.Default.Lock,
-                    isPassword = true
+                    isPassword = true,
+                    errorText = confirmPasswordError
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -210,23 +305,23 @@ fun CreateAccountScreen(
                 } else {
                     Button(
                         onClick = {
-                            viewModel.register(fullName, email, phoneNumber, password, confirmPassword)
+                            if (validate()) {
+                                viewModel.register(fullName.trim(), email.trim(), phoneNumber.trim(), password, confirmPassword)
+                            }
                         },
-                        enabled = isFormValid,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2563EB),
-                            disabledContainerColor = Color(0xFFE2E8F0)
+                            containerColor = Color(0xFF2563EB)
                         )
                     ) {
                         Text(
                             text = "Create Account",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isFormValid) Color.White else Color(0xFF94A3B8)
+                            color = Color.White
                         )
                     }
                 }
@@ -268,7 +363,8 @@ fun AccountInputField(
     leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false,
-    helperText: String? = null
+    helperText: String? = null,
+    errorText: String? = null
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     val skyBlue = Color(0xFF87CEEB)
@@ -291,6 +387,7 @@ fun AccountInputField(
             placeholder = { Text(placeholder, color = Color(0xFF94A3B8)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
+            isError = errorText != null,
             leadingIcon = {
                 Icon(leadingIcon, contentDescription = null, tint = Color(0xFF94A3B8), modifier = Modifier.size(20.dp))
             },
@@ -308,8 +405,8 @@ fun AccountInputField(
                 }
             } else null,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = if (errorText != null) Color.Red else Color.Transparent,
+                unfocusedBorderColor = if (errorText != null) Color.Red else Color.Transparent,
                 focusedContainerColor = Color(0xFFF1F5F9),
                 unfocusedContainerColor = Color(0xFFF1F5F9),
                 focusedTextColor = Color.Black,
@@ -321,7 +418,15 @@ fun AccountInputField(
             visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType)
         )
-        if (helperText != null) {
+        if (errorText != null) {
+            Text(
+                text = errorText,
+                fontSize = 11.sp,
+                color = Color.Red,
+                modifier = Modifier.padding(start = 4.dp, top = 4.dp),
+                lineHeight = 16.sp
+            )
+        } else if (helperText != null) {
             Text(
                 text = helperText,
                 fontSize = 11.sp,

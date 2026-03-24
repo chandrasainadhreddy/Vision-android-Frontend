@@ -211,6 +211,13 @@ class MainActivity : ComponentActivity() {
                             onNavigateToSettings = { navController.navigate("settings") },
                             onNavigateBack = { navController.popBackStack() },
                             onFilterClick = { navController.navigate("filter_tests") },
+                            onRetest = { type ->
+                                when (type) {
+                                    "ran" -> navController.navigate("camera_test")
+                                    "vrg" -> navController.navigate("camera_test2")
+                                    "pur" -> navController.navigate("camera_test3")
+                                }
+                            },
                             viewModel = testViewModel,
                             authViewModel = authViewModel
                         )

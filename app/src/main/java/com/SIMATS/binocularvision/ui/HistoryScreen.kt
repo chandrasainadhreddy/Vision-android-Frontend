@@ -27,12 +27,14 @@ import com.SIMATS.binocularvision.ui.viewmodels.TestViewModel
 import com.SIMATS.binocularvision.ui.viewmodels.AuthViewModel
 
 data class HistoryItem(
+    val id: Int,
     val title: String,
     val date: String,
     val score: String,
     val status: String,
     val statusColor: Color,
-    val statusTextColor: Color
+    val statusTextColor: Color,
+    val rawType: String
 )
 
 
@@ -45,8 +47,7 @@ fun HistoryScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateBack: () -> Unit = {},
     onFilterClick: () -> Unit = {},
-    selectedDateRange: String = "All Time",
-    selectedTestType: String = "All Types",
+    onRetest: (String) -> Unit = {},
     viewModel: TestViewModel = viewModel(),
     authViewModel: AuthViewModel = viewModel()
 ) {
@@ -134,7 +135,8 @@ fun HistoryScreen(
                         else -> Triple(dbClassification.replaceFirstChar { it.uppercase() }, Color(0xFFFFEBEE), Color(0xFFD32F2F))
                     }
                     
-                    val title = when(remoteItem.testType.lowercase()) {
+                    val rawType = remoteItem.testType.lowercase()
+                    val title = when(rawType) {
                         "ran" -> "Fixation Test"
                         "vrg" -> "Quick Screening"
                         "pur" -> "Full Assessment"
@@ -144,13 +146,19 @@ fun HistoryScreen(
 
                     HistoryCard(
                         item = HistoryItem(
+                            id = remoteItem.testId ?: 0,
                             title = title,
                             date = remoteItem.date,
                             score = String.format("%.1f%%", percentageValue),
                             status = statusLabel,
                             statusColor = statusColor,
-                            statusTextColor = statusTextColor
-                        )
+                            statusTextColor = statusTextColor,
+                            rawType = rawType
+                        ),
+                        onDelete = { id -> 
+                            userId?.let { uid -> viewModel.deleteTest(id, uid) }
+                        },
+                        onRetest = { type -> onRetest(type) }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -161,7 +169,9 @@ fun HistoryScreen(
 
 @Composable
 fun HistoryCard(
-    item: HistoryItem
+    item: HistoryItem,
+    onDelete: (Int) -> Unit = {},
+    onRetest: (String) -> Unit = {}
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -169,84 +179,115 @@ fun HistoryCard(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFE3F2FD)),
-                contentAlignment = Alignment.Center
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Timeline,
-                    contentDescription = null,
-                    tint = Color(0xFF2962FF),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFE3F2FD)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = item.title,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = Color(0xFF0D1B2A)
+                    Icon(
+                        imageVector = Icons.Default.Timeline,
+                        contentDescription = null,
+                        tint = Color(0xFF2962FF),
+                        modifier = Modifier.size(24.dp)
                     )
-                    
-                    Surface(
-                        color = item.statusColor,
-                        shape = RoundedCornerShape(8.dp)
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = item.status,
-                            color = item.statusTextColor,
-                            fontSize = 12.sp,
+                            text = item.title,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            fontSize = 16.sp,
+                            color = Color(0xFF0D1B2A)
+                        )
+                        
+                        Surface(
+                            color = item.statusColor,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = item.status,
+                                color = item.statusTextColor,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = null,
+                                tint = Color(0xFF90A4AE),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = item.date,
+                                color = Color(0xFF90A4AE),
+                                fontSize = 13.sp
+                            )
+                        }
+                        
+                        Text(
+                            text = item.score,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 16.sp,
+                            color = Color(0xFF0D1B2A)
                         )
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
+            }
+
+            // Actions for Pending tests
+            if (item.status == "Pending") {
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(color = Color(0xFFF1F5F9))
+                Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarToday,
-                            contentDescription = null,
-                            tint = Color(0xFF90A4AE),
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = item.date,
-                            color = Color(0xFF90A4AE),
-                            fontSize = 13.sp
-                        )
+                    TextButton(
+                        onClick = { onDelete(item.id) },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFEF5350))
+                    ) {
+                        Text("Delete", fontWeight = FontWeight.SemiBold)
                     }
-                    
-                    Text(
-                        text = item.score,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 16.sp,
-                        color = Color(0xFF0D1B2A)
-                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = { onRetest(item.rawType) },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2962FF),
+                            contentColor = Color.White
+                        ),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                        modifier = Modifier.height(36.dp)
+                    ) {
+                        Text("Retest", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
                 }
             }
         }
