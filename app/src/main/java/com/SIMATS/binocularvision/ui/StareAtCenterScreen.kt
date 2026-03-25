@@ -68,6 +68,7 @@ fun StareAtCenterScreen(
             FaceDetectorOptions.Builder()
                 .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
                 .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+                .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
                 .build()
         )
     }
@@ -148,13 +149,15 @@ fun StareAtCenterScreen(
                                 .addOnSuccessListener { faces ->
                                     if (faces.isNotEmpty()) {
                                         val face = faces[0]
-                                        val leftEye = face.getLandmark(com.google.mlkit.vision.face.FaceLandmark.LEFT_EYE)?.position
-                                        val rightEye = face.getLandmark(com.google.mlkit.vision.face.FaceLandmark.RIGHT_EYE)?.position
-                                        
-                                        if (leftEye != null && rightEye != null) {
-                                            isEyeDetected = true
-                                            // Stream sample to backend
-                                            viewModel?.addSample(
+                                         val leftEye = face.getLandmark(com.google.mlkit.vision.face.FaceLandmark.LEFT_EYE)?.position
+                                         val rightEye = face.getLandmark(com.google.mlkit.vision.face.FaceLandmark.RIGHT_EYE)?.position
+                                         val leftEyeOpenProb = face.leftEyeOpenProbability ?: 0f
+                                         val rightEyeOpenProb = face.rightEyeOpenProbability ?: 0f
+                                         
+                                         if (leftEye != null && rightEye != null && leftEyeOpenProb > 0.2f && rightEyeOpenProb > 0.2f) {
+                                             isEyeDetected = true
+                                             // Stream sample to backend
+                                             viewModel?.addSample(
                                                 n = sampleCount++,
                                                 x = (leftEye.x + rightEye.x) / 2f, // Simulated gaze x
                                                 y = (leftEye.y + rightEye.y) / 2f, // Simulated gaze y
@@ -172,7 +175,7 @@ fun StareAtCenterScreen(
                                 }
                                 .addOnFailureListener {
                                     isEyeDetected = false
-                                }
+                                }*99***
                                 .addOnCompleteListener { imageProxy.close() }
                         } else {
                             imageProxy.close()
